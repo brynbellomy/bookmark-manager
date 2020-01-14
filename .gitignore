@@ -1,0 +1,6 @@
+_attic/
+assets/
+bindata_assetfs.go
+node_modules/
+yarn-error.log
+
