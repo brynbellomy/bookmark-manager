@@ -18,23 +18,35 @@ btnSubmit.onclick = function(element) {
             code: `
                 ${window.libraryCode}
 
-                html2canvas(document.body).then(function(canvas) {
-                    const data = {
-                        ...${JSON.stringify(data)},
-                        screenshotDataURL: canvas.toDataURL("image/png"),
-                    }
-
-                    chrome.runtime.sendMessage({
-                        action: 'xhttp',
-                        data: data,
-                    }, function(err) {
-                        if (err) {
-                            chrome.runtime.sendMessage({ action: 'failure', error: err.toString() });
-                        } else {
-                            chrome.runtime.sendMessage({ action: 'success', data: data });
+                html2canvas(document.body)
+                    .catch(err => {
+                        console.error('Error writing screenshot:', err)
+                    })
+                    .then(function(canvas) {
+                        let dataURL
+                        if (canvas) {
+                            try {
+                                dataURL = canvas.toDataURL("image/png")
+                            } catch (err) {
+                                console.error('Error writing screenshot:', err)
+                            }
                         }
+                        const data = {
+                            ...${JSON.stringify(data)},
+                            screenshotDataURL: dataURL,
+                        }
+
+                        chrome.runtime.sendMessage({
+                            action: 'xhttp',
+                            data: data,
+                        }, function(err) {
+                            if (err) {
+                                chrome.runtime.sendMessage({ action: 'failure', error: err.toString() });
+                            } else {
+                                chrome.runtime.sendMessage({ action: 'success', data: data });
+                            }
+                        });
                     });
-                });
 
         `})
     })

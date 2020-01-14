@@ -1,5 +1,36 @@
 import memoize from 'lodash/memoize'
 
+export function processTagFilter(tagFilter) {
+    if (!tagFilter) {
+        return []
+    }
+    tagFilter = tagFilter.split(',')
+    if (tagFilter.length === 1 && tagFilter[0] === '') {
+        return []
+    }
+    return tagFilter
+}
+
+export function filterWantsUntagged(tagFilter) {
+    return tagFilter && tagFilter.length === 1 && tagFilter[0] === 'untagged'
+}
+
+export function removeTag(tagFilter, tag) {
+    if (filterWantsUntagged(tagFilter)) {
+        return []
+    }
+    return tagFilter.filter(x => x !== tag)
+}
+
+export function addTag(tagFilter, tag) {
+    if (tag === 'untagged') {
+        return ['untagged']
+    } else if (filterWantsUntagged(tagFilter)) {
+        return [tag]
+    }
+    return [].concat(tagFilter, tag)
+}
+
 export function tagFallsWithin(tag, tagScope) {
     const tagScopeParts = tagScope.split('/')
     const tagParts = tag.split('/')
@@ -19,6 +50,9 @@ export function tagFallsWithin(tag, tagScope) {
 function drillDown(tagTree, keypath) {
     let cursor = tagTree
     for (let key of keypath) {
+        if (!cursor || !cursor[key]) {
+            return null
+        }
         cursor = cursor[key]
     }
     return cursor

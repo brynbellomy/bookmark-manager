@@ -1,65 +1,52 @@
 import React, { useState, useEffect } from 'react'
+import { useParams, Link } from 'react-router-dom'
 import clsx from 'clsx'
 import { makeStyles, createStyles } from '@material-ui/styles'
-
-import { setTagFilter } from './redux/libActions'
+import { addTag, removeTag, filterWantsUntagged, processTagFilter } from './utils'
 
 function Tags(props) {
-    let { tags, tagFilter, hideTagsWhenFiltered, showUntaggedButton, setTagFilter } = props
+    let { tags, hideTagsWhenFiltered, showUntaggedButton } = props
+    let routeParams = useParams()
+    let tagFilter = processTagFilter(routeParams[0])
 
     const classes = useStyles(props) //{ ...useStyles(), ...props.classes }
-
-    function onClickUntagged() {
-        if (!setTagFilter) {
-            return
-        }
-
-        if (tagFilter && tagFilter.length === 0) {
-            setTagFilter(undefined)
-        } else if (tagFilter && tagFilter.length > 0) {
-            setTagFilter([])
-        } else if (!tagFilter) {
-            setTagFilter([])
-        }
-    }
-
-    function onClickTag(tag) {
-        if (!setTagFilter) {
-            return
-        }
-
-        if (!tagFilter) {
-            setTagFilter([tag])
-        } else if (tagFilter.includes(tag)) {
-            let newFilter = tagFilter.filter(t => t !== tag)
-            if (newFilter.length === 0) {
-                newFilter = undefined
-            }
-            setTagFilter( newFilter )
-        } else {
-            setTagFilter([ ...(tagFilter || []), tag ])
-        }
-    }
-
     const selectedClass = hideTagsWhenFiltered ? classes.tagHidden : classes.tagSelected
 
     return (
         <div className={classes.root}>
             {(tags || []).map(tag => (
-                <div key={tag}
-                    className={clsx(
-                        classes.tag,
-                        (tagFilter || []).includes(tag) && selectedClass
-                    )}
-                    onClick={() => onClickTag(tag)}
-                >
-                    {tag}
-                </div>
+                <Tag tag={tag} tagFilter={tagFilter} classes={classes} selectedClass={selectedClass} key={tag} />
             ))}
-            {showUntaggedButton &&
-                <div className={clsx(classes.tag, tagFilter && tagFilter.length === 0 && classes.tagSelected)} onClick={onClickUntagged}>(untagged)</div>
+            {showUntaggedButton && !filterWantsUntagged(tagFilter) &&
+                <Link to="/untagged">
+                    <div className={clsx(classes.tag)}>(untagged)</div>
+                </Link>
+            }
+            {showUntaggedButton && filterWantsUntagged(tagFilter) &&
+                <Link to="/">
+                    <div className={clsx(classes.tag, classes.tagSelected)}>(untagged)</div>
+                </Link>
             }
         </div>
+    )
+}
+
+function Tag({ tag, tagFilter, classes, selectedClass }) {
+    const isSelected = (tagFilter || []).includes(tag)
+    const linkURL = isSelected 
+        ? removeTag(tagFilter, tag).filter(x => !!x && x !== '').sort().join(',')
+        :    addTag(tagFilter, tag).filter(x => !!x && x !== '').sort().join(',')
+    return (
+        <Link to={`/${linkURL}`}>
+            <div key={tag}
+                className={clsx(
+                    classes.tag,
+                    (tagFilter || []).includes(tag) && selectedClass
+                )}
+            >
+                {tag}
+            </div>
+        </Link>
     )
 }
 

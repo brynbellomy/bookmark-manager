@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { connect } from 'react-redux'
+import {
+    useParams,
+    Link,
+} from 'react-router-dom'
 import clsx from 'clsx'
 import { makeStyles, createStyles } from '@material-ui/styles'
 import Paper from '@material-ui/core/Paper'
@@ -10,19 +14,22 @@ import ButtonGroup from '@material-ui/core/ButtonGroup'
 import GridOnIcon from '@material-ui/icons/GridOn'
 import ListIcon from '@material-ui/icons/List'
 
-import { selectEntry, clearSelectedEntries, setTagFilter, editTitle, editNotes } from './redux/libActions'
+import { selectEntry, clearSelectedEntries, editTitle, editNotes } from './redux/libActions'
 import EntryGrid from './EntryGrid'
 import EntryList from './EntryList'
 import BatchEditDialog from './BatchEditDialog'
 import Tags from './Tags'
 import Sidebar from './Sidebar'
-import { tagFallsWithin } from './utils'
+import { tagFallsWithin, processTagFilter, filterWantsUntagged } from './utils'
 
 import './App.css'
 
 
 function App(props) {
-    let { entries, urlsByTimestamp, selectedEntries, tags, tagFilter, tagTree, selectEntry, clearSelectedEntries, setTagFilter, editTitle, editNotes } = props
+    let { entries, urlsByTimestamp, selectedEntries, tags, tagTree, selectEntry, clearSelectedEntries, editTitle, editNotes } = props
+
+    let routeParams = useParams()
+    let tagFilter = processTagFilter(routeParams[0])
 
     const [ showBatchModal, setShowBatchModal ] = useState(false)
     const [ sidebarPageURL, setSidebarPageURL ] = useState(null)
@@ -31,7 +38,12 @@ function App(props) {
 
     // Filter entries
     let urls = [ ...urlsByTimestamp ]
-    if (tagFilter && tagFilter.length > 0) {
+    if (filterWantsUntagged(tagFilter)) {
+        urls = urls.filter(url => {
+            const entry = entries[url]
+            return !entry.tags || entry.tags.length === 0
+        })
+    } else if (tagFilter && tagFilter.length > 0) {
         urls = urls.filter(url => {
             const entry = entries[url]
             if (!entry.tags || entry.tags.length === 0) {
@@ -51,11 +63,6 @@ function App(props) {
             }
             return true
         })
-    } else if (tagFilter && tagFilter.length === 0) {
-        urls = urls.filter(url => {
-            const entry = entries[url]
-            return !entry.tags || entry.tags.length === 0
-        })
     }
     urls.reverse()
 
@@ -74,7 +81,9 @@ function App(props) {
                 <div style={{ flexGrow: 1 }}></div>
 
                 {tagFilter &&
-                    <Button onClick={() => setTagFilter(undefined)}>Clear tag filter</Button>
+                    <Link to="/">
+                        <Button>Clear tag filter</Button>
+                    </Link>
                 }
 
                 <ButtonGroup size="small">
@@ -94,7 +103,6 @@ function App(props) {
                             selectedEntries={selectedEntries}
                             selectEntry={selectEntry}
                             tagFilter={tagFilter}
-                            setTagFilter={setTagFilter}
                             setSidebarPageURL={setSidebarPageURL}
                             tagTree={tagTree}
                         />
@@ -107,7 +115,6 @@ function App(props) {
                             selectedEntries={selectedEntries}
                             selectEntry={selectEntry}
                             tagFilter={tagFilter}
-                            setTagFilter={setTagFilter}
                             setSidebarPageURL={setSidebarPageURL}
                         />
                     }
@@ -119,7 +126,6 @@ function App(props) {
                     tagFilter={tagFilter}
                     hideTagsWhenFiltered={false}
                     showUntaggedButton={true}
-                    setTagFilter={setTagFilter}
                     classes={{ root: classes.tagContainerSidebar }}
                 />
             </div>
@@ -215,7 +221,6 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = {
     selectEntry,
     clearSelectedEntries,
-    setTagFilter,
     editTitle,
     editNotes,
 }

@@ -1,6 +1,11 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider } from 'react-redux'
+import {
+    BrowserRouter as Router,
+    Switch,
+    Route
+} from 'react-router-dom'
 import './index.css'
 import App from './App'
 import store from './redux/store'
@@ -10,7 +15,16 @@ import { getEntries } from './redux/libActions'
 
 ReactDOM.render(
     <Provider store={store}>
-        <App />
+        <Router>
+            <Switch>
+                <Route path="/*" exact={false}>
+                    <App />
+                </Route>
+                <Route>
+                    <App />
+                </Route>
+            </Switch>
+        </Router>
     </Provider>
 , document.getElementById('root'))
 

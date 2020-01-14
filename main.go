@@ -66,10 +66,12 @@ func main() {
 			Notes:               "",
 		}
 
-		err = saveBase64AsPNG(body.ScreenshotDataURL, entry.ScreenshotFilename)
-		if err != nil {
-			respondJSON(resp, ErrorResponse{err.Error()})
-			return
+		if len(body.ScreenshotDataURL) > 0 {
+			err = saveBase64AsPNG(body.ScreenshotDataURL, entry.ScreenshotFilename)
+			if err != nil {
+				respondJSON(resp, ErrorResponse{err.Error()})
+				return
+			}
 		}
 
 		data, err := getDataFile()

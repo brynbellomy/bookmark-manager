@@ -3,7 +3,6 @@ import {
     SET_ENTRIES,
     SELECT_ENTRY,
     CLEAR_SELECTED_ENTRIES,
-    SET_TAG_FILTER,
 } from './libActions'
 
 const initialState = {
@@ -12,7 +11,6 @@ const initialState = {
     selectedEntries: {},
     tags: [],
     tagTree: {},
-    tagFilter: undefined,
 }
 
 function setKeypath(obj, keypath) {
@@ -101,14 +99,6 @@ export default (state = initialState, action) => {
         return {
             ...state,
             selectedEntries: {},
-        }
-    }
-
-    case SET_TAG_FILTER: {
-        const { tagFilter } = action.payload
-        return {
-            ...state,
-            tagFilter,
         }
     }
 

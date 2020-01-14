@@ -12,7 +12,7 @@ import { makeStyles, createStyles } from '@material-ui/styles'
 import Tags from './Tags'
 import EntryIcon from './EntryIcon'
 import { H5, H6 } from './Typography'
-import { strToColor, walkTagTree } from './utils'
+import { strToColor, walkTagTree, filterWantsUntagged } from './utils'
 
 
 function EntryList(props) {
@@ -26,20 +26,37 @@ function EntryList(props) {
 
     const sections = []
 
-    let tagRoots = tagFilter === undefined ? [ null ] : tagFilter
-    for (let tagRoot of tagRoots) {
-        walkTagTree(tagTree, tagRoot, (keypath, urls) => {
-            sections.push((
-                <EntryListSection
-                    key={keypath}
-                    keypath={keypath}
-                    urls={urls}
-                    entries={entries}
-                    tagFilter={tagFilter}
-                    classes={classes}
-                />
-            ))
-        })
+    if (filterWantsUntagged(tagFilter)) {
+        sections.push((
+            <EntryListSection
+                keypath={["(untagged)"]}
+                urls={urlsSorted}
+                entries={entries}
+                tagFilter={tagFilter}
+                classes={classes}
+            />
+        ))
+    } else {
+        console.log('TF', tagFilter)
+        console.log('tagTree', tagTree)
+        let tagRoots = tagFilter
+        if (tagFilter.length === 0) {
+            tagRoots = [null]
+        }
+        for (let tagRoot of tagRoots) {
+            walkTagTree(tagTree, tagRoot, (keypath, urls) => {
+                sections.push((
+                    <EntryListSection
+                        key={keypath}
+                        keypath={keypath}
+                        urls={urls}
+                        entries={entries}
+                        tagFilter={tagFilter}
+                        classes={classes}
+                    />
+                ))
+            })
+        }
     }
 
     return (

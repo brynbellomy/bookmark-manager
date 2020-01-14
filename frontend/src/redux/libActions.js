@@ -2,7 +2,6 @@ import * as fetch from '../fetch'
 
 export const SET_ENTRIES = 'SET_ENTRIES'
 export const SELECT_ENTRY = 'SELECT_ENTRY'
-export const SET_TAG_FILTER = 'SET_TAG_FILTER'
 export const CLEAR_SELECTED_ENTRIES = 'CLEAR_SELECTED_ENTRIES'
 
 export const getEntries = () => {
@@ -31,15 +30,6 @@ export const clearSelectedEntries = (url, isSelected) => {
         dispatch({
             type: CLEAR_SELECTED_ENTRIES,
             payload: {},
-        })
-    }
-}
-
-export const setTagFilter = (tagFilter) => {
-    return async (dispatch) => {
-        dispatch({
-            type: SET_TAG_FILTER,
-            payload: { tagFilter },
         })
     }
 }
