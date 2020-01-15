@@ -40,7 +40,6 @@ function EntryGrid(props) {
                     <Tags
                         tags={entries[url].tags}
                         tagFilter={tagFilter}
-                        hideTagsWhenFiltered={true}
                         showUntaggedButton={false}
                     />
                 </Paper>

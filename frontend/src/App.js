@@ -14,10 +14,11 @@ import ButtonGroup from '@material-ui/core/ButtonGroup'
 import GridOnIcon from '@material-ui/icons/GridOn'
 import ListIcon from '@material-ui/icons/List'
 
-import { selectEntry, clearSelectedEntries, editTitle, editNotes } from './redux/libActions'
+import { selectEntry, clearSelectedEntries, deleteSelectedEntries, editTitle, editNotes } from './redux/libActions'
 import EntryGrid from './EntryGrid'
 import EntryList from './EntryList'
 import BatchEditDialog from './BatchEditDialog'
+import BatchDeleteDialog from './BatchDeleteDialog'
 import Tags from './Tags'
 import Sidebar from './Sidebar'
 import { tagFallsWithin, processTagFilter, filterWantsUntagged } from './utils'
@@ -26,12 +27,13 @@ import './App.css'
 
 
 function App(props) {
-    let { entries, urlsByTimestamp, selectedEntries, tags, tagTree, selectEntry, clearSelectedEntries, editTitle, editNotes } = props
+    let { entries, urlsByTimestamp, selectedEntries, tags, tagTree, selectEntry, clearSelectedEntries, deleteSelectedEntries, editTitle, editNotes } = props
 
     let routeParams = useParams()
     let tagFilter = processTagFilter(routeParams[0])
 
     const [ showBatchModal, setShowBatchModal ] = useState(false)
+    const [ showDeleteModal, setShowDeleteModal ] = useState(false)
     const [ sidebarPageURL, setSidebarPageURL ] = useState(null)
     const [ listMode, setListMode ] = useState(true)
     const classes = useStyles()
@@ -67,6 +69,7 @@ function App(props) {
     urls.reverse()
 
 
+
     return (
         <div className={classes.root}>
             <Paper className={classes.headerBar}>
@@ -75,6 +78,7 @@ function App(props) {
                     <React.Fragment>
                         <Button onClick={() => setShowBatchModal(true)}>Batch edit</Button>
                         <Button onClick={clearSelectedEntries}>Clear selection</Button>
+                        <Button onClick={() => setShowDeleteModal(true)}>Delete</Button>
                     </React.Fragment>
                 }
 
@@ -131,6 +135,7 @@ function App(props) {
             </div>
 
             <BatchEditDialog open={showBatchModal} onClose={() => setShowBatchModal(false)} selectedEntries={selectedEntries} />
+            <BatchDeleteDialog open={showDeleteModal} onClose={() => setShowDeleteModal(false)} entries={entries} selectedEntries={selectedEntries} />
 
             <Sidebar
                 url={sidebarPageURL}
@@ -207,7 +212,6 @@ const useStyles = makeStyles(theme => createStyles({
 }))
 
 const mapStateToProps = (state) => {
-    console.log('mapstate', state.lib.tagFilter)
     return {
         entries: state.lib.entries,
         urlsByTimestamp: state.lib.urlsByTimestamp,
@@ -221,6 +225,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = {
     selectEntry,
     clearSelectedEntries,
+    deleteSelectedEntries,
     editTitle,
     editNotes,
 }

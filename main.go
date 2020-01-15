@@ -44,6 +44,27 @@ func main() {
 		panic(err)
 	}
 
+	http.HandleFunc("/delete-urls", func(resp http.ResponseWriter, req *http.Request) {
+		query := req.URL.Query()
+		urls := query["url"]
+
+		data, err := getDataFile()
+		if err != nil {
+			respondJSON(resp, ErrorResponse{err.Error()})
+			return
+		}
+
+		for _, url := range urls {
+			delete(data, url)
+		}
+
+		err = saveDataFile(data)
+		if err != nil {
+			respondJSON(resp, ErrorResponse{err.Error()})
+			return
+		}
+	})
+
 	http.HandleFunc("/url", func(resp http.ResponseWriter, req *http.Request) {
 		type Body struct {
 			PageTitle         string   `json:"pageTitle"`
@@ -190,9 +211,24 @@ func main() {
 	http.Handle("/image/", http.StripPrefix("/image/",
 		http.FileServer(http.Dir(DATA_FILE_PATH)),
 	))
-	http.Handle("/", http.FileServer(assetFS()))
+	http.Handle("/", http.FileServer(fsWithFallback{underlying: assetFS(), defaultDoc: "index.html"}))
 
 	http.ListenAndServe(":9919", nil)
+}
+
+type fsWithFallback struct {
+	underlying http.FileSystem
+	defaultDoc string // Filename of the 404 file to serve when there's an error serving original file.
+}
+
+func (fs fsWithFallback) Open(name string) (http.File, error) {
+	f, err := fs.underlying.Open(name)
+	if err != nil {
+		// If there's an error (perhaps worth checking that the error is "file doesn't exist", up to you),
+		// then serve your actual "404.html" file or handle it any way you wish.
+		return fs.underlying.Open(fs.defaultDoc)
+	}
+	return f, err
 }
 
 func getDataFile() (map[string]*Entry, error) {
@@ -215,7 +251,7 @@ func getDataFile() (map[string]*Entry, error) {
 }
 
 func saveDataFile(data map[string]*Entry) error {
-	dataBytes, err := json.Marshal(data)
+	dataBytes, err := json.MarshalIndent(data, "", "    ")
 	if err != nil {
 		return err
 	}

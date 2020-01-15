@@ -3,6 +3,7 @@ import * as fetch from '../fetch'
 export const SET_ENTRIES = 'SET_ENTRIES'
 export const SELECT_ENTRY = 'SELECT_ENTRY'
 export const CLEAR_SELECTED_ENTRIES = 'CLEAR_SELECTED_ENTRIES'
+export const DELETE_SELECTED_ENTRIES = 'DELETE_SELECTED_ENTRIES'
 
 export const getEntries = () => {
     return async (dispatch) => {
@@ -31,6 +32,17 @@ export const clearSelectedEntries = (url, isSelected) => {
             type: CLEAR_SELECTED_ENTRIES,
             payload: {},
         })
+    }
+}
+
+export const deleteSelectedEntries = ({ urls }) => {
+    return async (dispatch) => {
+        await fetch.deleteEntries({ urls })
+        dispatch({
+            type: DELETE_SELECTED_ENTRIES,
+            payload: {},
+        })
+        dispatch(getEntries())
     }
 }
 

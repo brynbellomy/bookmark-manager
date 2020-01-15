@@ -19,26 +19,22 @@ function EntryList(props) {
     const { urlsSorted, entries, selectedEntries, selectEntry, tagTree, tagFilter, setSidebarPageURL } = props
     const classes = useStyles()
 
-    function onClickCheckbox(evt, url) {
-        evt.stopPropagation()
-        selectEntry(url, !selectedEntries[url])
-    }
-
     const sections = []
 
     if (filterWantsUntagged(tagFilter)) {
         sections.push((
             <EntryListSection
+                key={'alsdj;fkajs;ldkfja;lsfkj'}
                 keypath={["(untagged)"]}
                 urls={urlsSorted}
                 entries={entries}
+                selectedEntries={selectedEntries}
+                selectEntry={selectEntry}
                 tagFilter={tagFilter}
                 classes={classes}
             />
         ))
     } else {
-        console.log('TF', tagFilter)
-        console.log('tagTree', tagTree)
         let tagRoots = tagFilter
         if (tagFilter.length === 0) {
             tagRoots = [null]
@@ -51,6 +47,8 @@ function EntryList(props) {
                         keypath={keypath}
                         urls={urls}
                         entries={entries}
+                        selectedEntries={selectedEntries}
+                        selectEntry={selectEntry}
                         tagFilter={tagFilter}
                         classes={classes}
                     />
@@ -66,7 +64,14 @@ function EntryList(props) {
     )
 }
 
-function EntryListSection({ keypath, urls, entries, tagFilter, classes }) {
+function EntryListSection({ keypath, urls, entries, selectedEntries, selectEntry, tagFilter, classes }) {
+    selectedEntries = selectedEntries || {}
+
+    function onClickCheckbox(evt, url) {
+        evt.stopPropagation()
+        selectEntry(url, !selectedEntries[url])
+    }
+
     const [ expanded, setExpanded ] = useState(false)
 
     return (
@@ -77,10 +82,16 @@ function EntryListSection({ keypath, urls, entries, tagFilter, classes }) {
             </div>
 
             {expanded && urls.map(url => (
-                <ExpansionPanel>
+                <ExpansionPanel key={url}>
                     <ExpansionPanelSummary expandIcon={<ExpandMoreIcon />}>
-                        <EntryIcon entry={entries[url]} className={classes.favicon} />
-                        {entries[url].pageTitle}
+                        <div style={{ display: 'flex', width: '100%' }}>
+                            <EntryIcon entry={entries[url]} className={classes.favicon} />
+                            {entries[url].pageTitle}
+                            <div style={{ flexGrow: 1 }}></div>
+                            <div>
+                                <Checkbox checked={!!selectedEntries[url]} onClick={evt => onClickCheckbox(evt, url)} classes={{ root: classes.checkbox }} />
+                            </div>
+                        </div>
                     </ExpansionPanelSummary>
 
                     <ExpansionPanelDetails className={classes.expandedSectionBody}>
@@ -177,6 +188,9 @@ const useStyles = makeStyles(theme => createStyles({
     arrowFlip: {
         transform: 'rotate(180deg)',
         transition: 'transform 200ms',
+    },
+    checkbox: {
+        padding: 0,
     },
 }))
 

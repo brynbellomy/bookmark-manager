@@ -1,8 +1,10 @@
 import sortBy from 'lodash/sortBy'
+import omit from 'lodash/omit'
 import {
     SET_ENTRIES,
     SELECT_ENTRY,
     CLEAR_SELECTED_ENTRIES,
+    DELETE_SELECTED_ENTRIES,
 } from './libActions'
 
 const initialState = {
@@ -98,6 +100,33 @@ export default (state = initialState, action) => {
     case CLEAR_SELECTED_ENTRIES: {
         return {
             ...state,
+            selectedEntries: {},
+        }
+    }
+
+    case DELETE_SELECTED_ENTRIES: {
+        let tagTree = { ...state.tagTree }
+        function removeURLFromKeypath(tagTree, tag, url) {
+            let keypath = tag.split('/')
+            let cursor = tagTree
+            for (let key of keypath) {
+                cursor[key] = cursor[key] || {}
+                cursor = cursor[key]
+            }
+            cursor.__entries__ = (cursor.__entries__ || []).filter(url => url !== url)
+        }
+
+        for (let url of Object.keys(state.selectedEntries)) {
+            for (let tag of state.entries[url].tags) {
+                removeURLFromKeypath(tagTree, tag, url)
+            }
+        }
+
+        return {
+            ...state,
+            tagTree,
+            entries: omit(state.entries, Object.keys(state.selectedEntries)),
+            urlsByTimestamp: state.urlsByTimestamp.filter(x => !Object.keys(state.selectedEntries).includes(x)),
             selectedEntries: {},
         }
     }

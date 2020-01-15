@@ -1,6 +1,12 @@
+import querystring from 'querystring'
 
 export async function getEntries() {
     return await (await fetch('/entries')).json()
+}
+
+export async function deleteEntries({ urls }) {
+    let qs = querystring.stringify({ url: urls })
+    await fetch('/delete-urls?' + qs)
 }
 
 export async function batchEdit({ urls, tagsToAdd, tagsToRemove }) {
